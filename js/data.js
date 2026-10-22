@@ -2,7 +2,7 @@
 const DATA = {};
 DATA.MAX_DAYS = 7;
 DATA.PORTIONS = 8; // 1 mẻ = 8 phần
-DATA.SEED = 250000; // vốn bà... ông cấp mỗi ngày
+DATA.SEED = 500000; // vốn bà... ông cấp mỗi ngày
 
 DATA.DIFF = {
   easy: { name: 'Dễ', debt: 1200000, cust: 1.15, desc: 'Nợ 1,2 triệu, khách đông hơn' },
@@ -140,7 +140,7 @@ DATA.STORY = [
   { who: 'ongbay', text: 'Tí đó hả cháu? Ông cảm ơn nhe. Tiệm xôi này ba đời nhà họ Bảy, bán từ hồi chợ còn họp dưới gốc đa kia kìa.' },
   { who: 'saucao', text: 'Ông Bảy! Hạn trả nợ chỉ còn đúng BẢY ngày. Không đủ một triệu rưỡi thì cái bếp này, cái nhà này... là của tôi!' },
   { who: 'ongbay', text: 'Sáu Cáo cứ yên tâm. Bảy ngày nữa tôi trả đủ, không thiếu một đồng. Xôi nếp thơm của ông Bảy chưa bao giờ phụ lòng ai!' },
-  { who: 'ti', text: 'Mỗi sáng ông cho vốn 250 nghìn đi chợ mua nếp. Mình đồ xôi, gánh ra chợ bán, dư được bao nhiêu để dành trả nợ hết!' },
+  { who: 'ti', text: 'Mỗi sáng ông cho vốn 500 nghìn đi chợ mua nếp. Mình đồ xôi, gánh ra chợ bán, dư được bao nhiêu để dành trả nợ hết!' },
   { who: 'ongbay', text: 'Phải rồi. Mua nguyên liệu tươi, đồ xôi dẻo thơm, bán đúng giá, lo gói lá cho khéo. Còn khi rảnh thì ra hội làng chơi vài trò kiếm thêm nguyên liệu. Bắt tay vào việc thôi, Tí!' },
 ];
 DATA.TIPS = [

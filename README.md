@@ -18,7 +18,7 @@ Game thiết kế cho màn hình dọc (điện thoại) và tự thu nhỏ vừ
 
 Ông Bảy nợ Sáu Cáo **1.500.000đ** (tuỳ độ khó), còn **7 ngày** để trả. Mỗi ngày:
 
-1. **Mở đầu ngày** – xem thời tiết, sự kiện (chợ phiên, mưa, thanh tra, giá thịt tăng...). Ông cấp vốn 250.000đ (nếu lỗ ông bù cho đủ vốn). Tiền vượt trên vốn là quỹ trả nợ.
+1. **Mở đầu ngày** – xem thời tiết, sự kiện (chợ phiên, mưa, thanh tra, giá thịt tăng...). Ông cấp vốn 500.000đ (nếu lỗ ông bù cho đủ vốn). Tiền vượt trên vốn là quỹ trả nợ.
 2. **Bếp** – mua nguyên liệu theo giá chợ hôm nay (chạm để mua 1, giữ để mua 5), chọn món + số mẻ rồi **Đi chợ & Đồ xôi** (quạt lửa để chín nhanh). 1 mẻ = 8 phần.
 3. **Bảng giá** – đặt giá bán từng món. Rẻ thì đông khách, đắt quá khách bỏ đi.
 4. **Gánh ra chợ & bán hàng** – bong bóng trên đầu khách ghi tên xôi và số phần. Chạm đúng món để bỏ vào túi, bấm **Gói lá** để xem hoạt cảnh trải lá, xúc xôi, gấp lá, buộc dây rồi giao cho khách. Khách sốt ruột sẽ bỏ đi, hết xôi thì khách buồn.
