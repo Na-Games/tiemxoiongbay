@@ -77,4 +77,4 @@ js/
 - **Bán hàng**: gói lá nhỏ đặt trên quầy (tối đa 3 gói), chạm đúng khách để giao, có nút **Từ chối** khi hết món.
 - **Chương**: Dễ 10 chương, Thường 12 chương, Khó 15 chương; số ngày trả nợ tăng dần từ 7 đến 21 ngày (gánh xôi, xe đẩy, cửa hàng phố, chuỗi tiệm, xưởng xôi, hội chợ, ven biển, ga tàu, sân bay, đế chế...). Cửa hàng phố có mất điện, kiểm tra giấy phép, thanh tra vệ sinh và trộm; có nâng cấp máy phát điện, giấy phép, an toàn thực phẩm và 3 loại bảo vệ.
 - **Hướng dẫn lần đầu** từng bước ở bếp, bảng giá, chợ (xem lại trong Hướng dẫn).
-- **Toàn màn hình**: màn "Chạm để chơi toàn màn hình" ở lần mở đầu để ẩn thanh địa chỉ.
+- **Toàn màn hình**: tự vào toàn màn hình ở lần chạm đầu tiên để ẩn thanh địa chỉ.
