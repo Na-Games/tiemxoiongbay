@@ -9,7 +9,6 @@ const UI = {
     this.parts = []; this.fxRun = false;
     window.addEventListener('resize', () => this.resizeFx());
     this.resizeFx();
-    this.fsBtns = [];
     // âm thanh, rung nhẹ và gợn sóng khi bấm nút
     document.addEventListener('pointerdown', (e) => {
       Sound.init();
@@ -22,25 +21,21 @@ const UI = {
     }, true);
     this.applySettings();
   },
-  /* Nút toàn màn hình, tự đổi biểu tượng */
-  fsButton(cls = '') {
-    const b = el('button', 'btn mini ' + cls, Device.isFull() ? '🗗' : '⛶'); b.title = 'Toàn màn hình';
-    b.onclick = () => Device.toggle();
-    this.fsBtns = this.fsBtns.filter((x) => x.isConnected); this.fsBtns.push(b);
-    return b;
-  },
   register(name, mod) {
     const sec = el('section', 'screen'); sec.id = 's-' + name; (this.stage || $('#stage')).appendChild(sec);
     this.screens[name] = { mod, el: sec };
   },
   applySettings() {
     const s = S();
-    this.app.className = ['theme-' + s.uiTheme, s.scanlines && 'scan', s.bigButtons && 'bigbtn', !s.transitions && 'notrans', s.btnStyle === 'round' && 'round', s.vignette && 'vig', s.pixelFont === false && 'plainfont'].filter(Boolean).join(' ');
+    this._scn = this.scnKey();
+    this.app.className = ['theme-' + s.uiTheme, this._scn !== 'plain' && 'scn-' + this._scn, s.scanlines && 'scan', s.bigButtons && 'bigbtn', !s.transitions && 'notrans', s.btnStyle === 'round' && 'round', s.vignette && 'vig', s.pixelFont === false && 'plainfont'].filter(Boolean).join(' ');
     document.documentElement.style.setProperty('--fs', s.fontScale);
     this.app.style.filter = s.brightness && s.brightness !== 1 ? 'brightness(' + s.brightness + ')' : '';
-    this.setAmbient(s.ambientFx);
+    this.setAmbient(s.ambientFx !== 'off' ? s.ambientFx : ((G && Calc.scn().fx) || 'off'));
     Device.syncWake();
   },
+  /* Khóa kịch bản của chương đang chơi (đổi màu cảnh, hiệu ứng nền) */
+  scnKey() { try { return G && G.chapter ? (Calc.chapter().scnKey || 'plain') : 'plain'; } catch (e) { return 'plain'; } },
   /* Hiệu ứng nền nhẹ: đom đóm, cánh hoa, bụi vàng, đèn lồng */
   setAmbient(kind) {
     let box = $('#ambient');
@@ -68,6 +63,7 @@ const UI = {
     if (this.busy) return;
     this.busy = true;
     const next = this.screens[name];
+    if (this._scn !== this.scnKey()) this.applySettings();
     const fast = !S().transitions || o.instant;
     if (!fast && this.cur) { this.curtain.className = 'in'; await sleep(380); }
     if (this.cur) {
@@ -180,7 +176,7 @@ const UI = {
   },
   updateHud() {
     if (!G) return;
-    $$('.hud-day').forEach((e) => { e.textContent = 'Ngày ' + G.day + '/' + DATA.MAX_DAYS; });
+    $$('.hud-day').forEach((e) => { e.textContent = 'Ngày ' + G.day + '/' + Calc.maxDays(); });
     $$('.hud-stars').forEach((e) => { const n = Calc.stars(); e.innerHTML = '★'.repeat(n) + '<i>' + '★'.repeat(5 - n) + '</i>'; });
     $$('.hud-money').forEach((e) => { e.textContent = money(G.cash); });
     $$('.hud-debtv').forEach((e) => { e.textContent = money(Calc.remaining()); });

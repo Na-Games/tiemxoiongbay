@@ -38,9 +38,17 @@ Game thiết kế cho màn hình dọc (điện thoại) và tự thu nhỏ vừ
 
 Toàn bộ hình ảnh nhân vật, đĩa xôi, cảnh vật được vẽ bằng code (canvas), âm thanh và nhạc tổng hợp bằng WebAudio nên không cần file ảnh/âm thanh (chỉ có icon ứng dụng trong `assets/`).
 
+## Chương, kịch bản và nhân viên
+
+- Dễ 20 chương, Thường 24 chương, Khó 30 chương (số ngày 7 → 36). Vốn mỗi sáng tăng dần theo chương.
+- Mỗi chương có kịch bản riêng (mùa mưa, lễ hội, bão giá, ưu đãi nhân sự...) đổi màu cảnh, hiệu ứng nền, thời tiết, giá nguyên liệu, độ đông khách, giá thuê và lương.
+- Nhân viên mới (bếp phó, quản lý, shipper, marketing, robot, giám đốc tài chính, đại sứ, bếp trưởng Michelin) mở khóa theo chương.
+- Icon nguyên liệu vẽ riêng trong `js/icons.js`; cảnh nền, nhân vật, mèo, gánh xôi vẽ ở độ phân giải cao.
+- Nút "Chơi lại từ đầu" ở trang chủ xóa toàn bộ dữ liệu sau hai bước cảnh báo.
+
 ## Toàn màn hình trên điện thoại
 
-Trình duyệt chỉ cho ẩn thanh địa chỉ sau một cú chạm của người chơi. Game tự vào toàn màn hình ở lần chạm đầu (bật/tắt ở Cài đặt ➜ Giao diện ➜ Màn hình, hoặc nút ⛶ ở trang chủ). iPhone/iPad không hỗ trợ Fullscreen API: bấm Chia sẻ ➜ "Thêm vào MH chính" rồi mở bằng biểu tượng mới (file `manifest.webmanifest` đã khai báo `display: fullscreen`). Cần mở qua máy chủ tĩnh (http hoặc https) để cài như ứng dụng.
+Trình duyệt chỉ cho ẩn thanh địa chỉ sau một cú chạm của người chơi. Game luôn tự vào toàn màn hình ở lần chạm đầu (không còn nút hay cài đặt bật/tắt). Dòng thông báo "Để thoát khỏi chế độ toàn màn hình, hãy kéo từ trên xuống" do chính Chrome hiển thị mỗi lần vào toàn màn hình nên web không tắt được; muốn không còn dòng này hãy cài game vào màn hình chính (Chrome ➜ Thêm vào màn hình chính) rồi mở bằng biểu tượng mới. iPhone/iPad không hỗ trợ Fullscreen API: bấm Chia sẻ ➜ "Thêm vào MH chính" rồi mở bằng biểu tượng mới (file `manifest.webmanifest` đã khai báo `display: fullscreen`). Cần mở qua máy chủ tĩnh (http hoặc https) để cài như ứng dụng.
 
 ## Cấu trúc
 
@@ -62,3 +70,11 @@ js/
   screens/       title, bếp, tab nâng cấp/nhân viên/hội làng/điểm danh, chợ, cài đặt, hướng dẫn, mini game (minigames.js + minigames2.js)
   main.js
 ```
+
+## Cập nhật mới
+
+- **Cân bằng**: giá nhập rẻ hơn khoảng 30%, giá bán cao hơn khoảng 20%, vốn mỗi ngày 300.000đ. Tiền thu đúng bằng giá bạn đặt ở bảng giá (boa và phạt hiện riêng).
+- **Bán hàng**: gói lá nhỏ đặt trên quầy (tối đa 3 gói), chạm đúng khách để giao, có nút **Từ chối** khi hết món.
+- **Chương**: Dễ 10 chương, Thường 12 chương, Khó 15 chương; số ngày trả nợ tăng dần từ 7 đến 21 ngày (gánh xôi, xe đẩy, cửa hàng phố, chuỗi tiệm, xưởng xôi, hội chợ, ven biển, ga tàu, sân bay, đế chế...). Cửa hàng phố có mất điện, kiểm tra giấy phép, thanh tra vệ sinh và trộm; có nâng cấp máy phát điện, giấy phép, an toàn thực phẩm và 3 loại bảo vệ.
+- **Hướng dẫn lần đầu** từng bước ở bếp, bảng giá, chợ (xem lại trong Hướng dẫn).
+- **Toàn màn hình**: màn "Chạm để chơi toàn màn hình" ở lần mở đầu để ẩn thanh địa chỉ.

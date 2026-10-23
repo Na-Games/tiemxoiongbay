@@ -1,0 +1,777 @@
+/* ======================================================================
+   Bản cập nhật 2026.10.23: chủ đề màu thật sự đổi cả game, bản đồ chương mới,
+   gói xôi nhỏ như bó xôi gói lá, quầy chợ sinh động, danh sách trò dân gian
+   ====================================================================== */
+
+/* ---------- Biến màu dùng chung cho mọi chủ đề ---------- */
+:root {
+  --dark: #10081c;
+  --dark2: #140c1c;
+  --dark3: #2a1418;
+  --chip: #3a2418;
+  --sf: brightness(1);
+}
+
+/* Bộ lọc màu cho cảnh pixel-art (nền, phố chợ, bếp, trò chơi): mỗi chủ đề đổi sắc cả khung cảnh */
+#app canvas.scene-full,
+#app canvas.scene-cv,
+#app canvas.dlg-bg,
+#app canvas.mg-bg,
+#app canvas.mkt-front {
+  filter: var(--sf);
+  transition: filter .3s;
+}
+
+#app canvas.scene-full.dim {
+  filter: var(--sf) brightness(.45) saturate(.8);
+}
+
+#app.theme-night { --sf: brightness(1); }
+
+#app.theme-dusk {
+  --bg: #2a0e26; --hud: #4a1c3a; --dark: #2a0c24; --dark2: #34102c; --dark3: #4a1a3a; --chip: #5a2434;
+  --panel: #f8e0c8; --panel2: #f0c8a4; --ink: #4a2230; --ink2: #7a4a50;
+  --edge: #e0607a; --edge2: #922a4c; --line: #2a0c1c; --red: #e0506a; --gold: #ffc23a; --blue: #7a58c8; --board: #5a1a3e;
+  --sf: sepia(.55) hue-rotate(-20deg) saturate(1.5);
+}
+
+#app.theme-tet {
+  --bg: #2a0608; --hud: #6a1018; --dark: #38060c; --dark2: #440a10; --dark3: #5a1216; --chip: #7a1c1c;
+  --panel: #fff0c8; --panel2: #f8dc9a; --ink: #4a1410; --ink2: #8a3a24;
+  --edge: #e0281c; --edge2: #8a1010; --line: #2a0606; --red: #e0281c; --gold: #ffd23a; --blue: #d86a1c; --board: #7a1418;
+  --sf: sepia(.7) hue-rotate(-38deg) saturate(2.2);
+}
+
+#app.theme-jade {
+  --bg: #061c18; --hud: #0e4a40; --dark: #06241e; --dark2: #082c24; --dark3: #0e3a30; --chip: #1c5a44;
+  --panel: #e8f4d8; --panel2: #cfe6b4; --ink: #123a2a; --ink2: #3a6a50;
+  --edge: #2a9a74; --edge2: #145a44; --line: #06241c; --red: #2a9a74; --gold: #d8e03a; --blue: #2a8aa8; --board: #0e4a3c;
+  --sf: sepia(.7) hue-rotate(110deg) saturate(1.8);
+}
+
+#app.theme-sakura {
+  --bg: #2a0c20; --hud: #5a1a46; --dark: #3a0e2e; --dark2: #440f36; --dark3: #5a1a46; --chip: #7a2a5a;
+  --panel: #ffeaf1; --panel2: #fcd0e0; --ink: #5a1a3e; --ink2: #9a4a70;
+  --edge: #ec5a92; --edge2: #922a5e; --line: #3a0e2a; --red: #ec5a92; --gold: #ffd0e8; --blue: #b86ae0; --board: #6a1e4a;
+  --sf: sepia(.6) hue-rotate(-70deg) saturate(1.7) brightness(1.06);
+}
+
+#app.theme-ocean {
+  --bg: #06182c; --hud: #0e3a66; --dark: #061c36; --dark2: #08243e; --dark3: #0e3252; --chip: #1a4a7a;
+  --panel: #e2f2fa; --panel2: #bcdcee; --ink: #123a5a; --ink2: #3a6a8a;
+  --edge: #2a82c8; --edge2: #164a82; --line: #06203a; --red: #2a82c8; --gold: #ffd23a; --blue: #e0702e; --board: #124a72;
+  --sf: sepia(.7) hue-rotate(170deg) saturate(2);
+}
+
+#app.theme-coffee {
+  --bg: #1c0e08; --hud: #3a2014; --dark: #24120a; --dark2: #2c160c; --dark3: #3a2014; --chip: #5a3820;
+  --panel: #f2e2c8; --panel2: #e2c8a0; --ink: #3a2010; --ink2: #6a4a30;
+  --edge: #9a6034; --edge2: #4e2c16; --line: #24120a; --red: #a85a2c; --gold: #e8b860; --blue: #7a6a5a; --board: #3e281a;
+  --sf: sepia(.85) saturate(.9) brightness(.96);
+}
+
+#app.theme-sun {
+  --bg: #2a1a06; --hud: #6a4210; --dark: #3a2408; --dark2: #46300a; --dark3: #5a3c10; --chip: #8a5a14;
+  --panel: #fff6d0; --panel2: #ffe6a0; --ink: #5a360c; --ink2: #8a6422;
+  --edge: #f0922a; --edge2: #a85a0c; --line: #3a2208; --red: #f0782a; --gold: #ffe03a; --blue: #e0a020; --board: #7a5216;
+  --sf: sepia(.6) hue-rotate(8deg) saturate(2) brightness(1.1);
+}
+
+#app.theme-violet {
+  --bg: #120a2e; --hud: #301c5a; --dark: #1c1040; --dark2: #241450; --dark3: #301c5a; --chip: #4a2e8a;
+  --panel: #efe8fc; --panel2: #d8caf2; --ink: #36206a; --ink2: #6a4aa0;
+  --edge: #7e56d0; --edge2: #4a2a8c; --line: #1a0e3a; --red: #7e56d0; --gold: #ffd0ff; --blue: #3a8ad8; --board: #34226a;
+  --sf: sepia(.7) hue-rotate(228deg) saturate(1.9);
+}
+
+/* Ô xem trước màu trong phần cài đặt */
+.tg .sw {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  margin-top: 3px;
+  border: 2px solid var(--line);
+}
+
+.tg .sw i {
+  flex: 1;
+}
+
+/* ---------- Bản đồ chương ---------- */
+.cmap .chap-top {
+  padding-bottom: 4px;
+}
+
+.cm-diff {
+  font-style: normal;
+  background: var(--gold);
+  color: #3a2410;
+  padding: 0 6px;
+  text-shadow: none;
+}
+
+.cmap.diff-easy .cm-diff { background: #7ae07a; }
+.cmap.diff-hard .cm-diff { background: #ff7a6a; }
+
+.cm-prog {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 6px;
+  color: #fff;
+  font-size: .82em;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.cm-bar {
+  flex: 1;
+  height: 12px;
+  background: #0008;
+  border: 2px solid #000;
+}
+
+.cm-bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #5ad86a, #ffe070);
+  box-shadow: 0 0 10px #ffe07088;
+}
+
+.cm-list {
+  gap: 12px !important;
+  padding: 6px 12px 60px !important;
+}
+
+.cm-list::before {
+  display: none !important;
+}
+
+.cm-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  animation: fadeUp .5s both;
+}
+
+.cm-rail {
+  position: relative;
+  flex: 0 0 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.cm-rail::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: -12px;
+  width: 6px;
+  background: repeating-linear-gradient(#ffd070 0 8px, transparent 8px 16px);
+  opacity: .6;
+  animation: pathFlow 1.2s linear infinite;
+}
+
+.cm-row:last-child .cm-rail::before {
+  bottom: 50%;
+}
+
+.cm-dot {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a0c28;
+  color: #ffe070;
+  border: 3px solid #ffd070;
+  border-radius: 50%;
+  font-size: .9em;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.cm-row.done .cm-dot {
+  background: #2e8a3a;
+  border-color: #8af09a;
+  color: #fff;
+}
+
+.cm-row.locked .cm-dot {
+  border-color: #6a5a8a;
+  background: #2a2038;
+  font-size: .7em;
+}
+
+.cm-card {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px 10px 8px 8px;
+  background: linear-gradient(120deg, var(--c1), var(--c2));
+  border: 3px solid #0a0610;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .22), inset 0 -8px 0 rgba(0, 0, 0, .22), 0 4px 0 #0008;
+  color: #fff;
+  text-shadow: 1px 1px 0 #000;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform .1s;
+}
+
+.cm-card:active {
+  transform: scale(.98);
+}
+
+.cm-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 40%, rgba(255, 255, 255, .2) 50%, transparent 60%);
+  transform: translateX(-130%);
+  animation: shine 5s infinite;
+}
+
+.cm-art {
+  position: relative;
+  flex: 0 0 auto;
+  width: 58px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.3em;
+  background: radial-gradient(circle at 40% 35%, rgba(255, 255, 255, .35), rgba(0, 0, 0, .35));
+  border: 3px solid rgba(255, 255, 255, .55);
+  border-radius: 50%;
+  text-shadow: 0 3px 0 #0006;
+}
+
+.cm-art i {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #fff6b0;
+  box-shadow: 0 0 6px 2px #ffe070aa;
+  opacity: 0;
+}
+
+.cm-art .s1 { left: -2px; top: 6px; }
+.cm-art .s2 { right: -4px; top: 14px; }
+.cm-art .s3 { left: 12px; bottom: -3px; }
+
+.cm-row.now .cm-art {
+  animation: icBob 1.6s ease-in-out infinite;
+}
+
+.cm-row.now .cm-art i {
+  animation: twinkle 1.6s ease-in-out infinite;
+}
+
+.cm-row.now .cm-art .s2 { animation-delay: .5s; }
+.cm-row.now .cm-art .s3 { animation-delay: 1s; }
+
+@keyframes twinkle {
+  50% {
+    opacity: 1;
+    transform: scale(1.8);
+  }
+}
+
+.cm-info {
+  flex: 1;
+  min-width: 0;
+  line-height: .95;
+}
+
+.cm-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: .75em;
+}
+
+.cm-top small {
+  color: #ffe9a0;
+}
+
+.cm-top em {
+  font-style: normal;
+  opacity: .9;
+}
+
+.cm-info b {
+  display: block;
+  font-weight: normal;
+  font-size: 1.2em;
+  margin: 1px 0 3px;
+}
+
+.cm-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: .82em;
+}
+
+.cm-stats span {
+  background: #0006;
+  padding: 0 5px 1px;
+}
+
+.cm-stats .d {
+  color: #9affb0;
+}
+
+.cm-stats .m {
+  color: #ffe070;
+}
+
+.cm-days {
+  height: 5px;
+  margin-top: 4px;
+  background: #0007;
+}
+
+.cm-days i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #5ad86a, #ffe070, #ff7a5a);
+}
+
+.cm-lock {
+  display: block;
+  font-size: .8em;
+  color: #ffc0a8;
+}
+
+.cm-go {
+  flex: 0 0 auto;
+  font-size: 1.5em;
+  color: #fff;
+}
+
+.cm-row.done .cm-go {
+  color: #ffe070;
+}
+
+.cm-row.now .cm-card {
+  border-color: #ffd23a;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .3), inset 0 -8px 0 rgba(0, 0, 0, .22), 0 0 0 3px #ffd23a55, 0 0 22px rgba(255, 210, 60, .5);
+  animation: nodeGlow 1.4s ease-in-out infinite alternate;
+}
+
+.cm-row.now .cm-go {
+  animation: hop .5s ease-in-out infinite alternate;
+}
+
+.cm-row.locked .cm-card {
+  background: linear-gradient(120deg, #3a3446, #1c1824);
+  filter: grayscale(.85);
+  opacity: .62;
+  cursor: default;
+}
+
+.cm-row.fresh .cm-card {
+  animation: nodeGlow .6s ease-in-out 6 alternate;
+}
+
+/* ---------- Gói xôi nhỏ, giống bó xôi gói lá chuối ---------- */
+.pack {
+  top: 45%;
+  width: 46px;
+  margin-left: -23px;
+}
+
+.pk-body {
+  width: 46px;
+  height: 26px;
+}
+
+.pk-leaf {
+  border: 2px solid #1f4a1c;
+  border-radius: 13px / 9px;
+  background:
+    repeating-linear-gradient(104deg, rgba(20, 70, 24, 0) 0 5px, rgba(20, 70, 24, .3) 5px 6px),
+    linear-gradient(180deg, #a2e070, #62b24c 45%, #3a8a34);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .38), inset 0 -4px 0 rgba(0, 0, 0, .2), 0 3px 0 rgba(0, 0, 0, .3);
+}
+
+.pk-leaf::after {
+  left: 8%;
+  right: 8%;
+  top: 45%;
+  bottom: auto;
+  width: auto;
+  height: 2px;
+  background: rgba(20, 70, 24, .55);
+  box-shadow: none;
+}
+
+.pk-rice {
+  top: -14px;
+}
+
+.pk-rice img {
+  width: 24px;
+  margin: 0 -4px;
+}
+
+.pack[data-step="2"] .pk-rice {
+  top: 1px;
+}
+
+.pk-flap {
+  top: 1px;
+  bottom: 1px;
+  width: 32%;
+  border: 0;
+  background: linear-gradient(180deg, #7ed05a, #3f8c36);
+}
+
+.pk-flap.l {
+  left: -4px;
+  border-radius: 0;
+  transform-origin: right center;
+  clip-path: polygon(100% 0, 100% 100%, 0 50%);
+}
+
+.pk-flap.r {
+  right: -4px;
+  border-radius: 0;
+  transform-origin: left center;
+  clip-path: polygon(0 0, 0 100%, 100% 50%);
+}
+
+.pack .pk-str,
+.pack:is([data-step="4"], [data-step="5"]) .pk-str {
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  border: 0;
+  background: linear-gradient(90deg, transparent 0 27%, #d4aa56 27% 33%, transparent 33% 65%, #d4aa56 65% 71%, transparent 71%);
+  opacity: 0;
+  transition: opacity .25s;
+}
+
+.pack:is([data-step="4"], [data-step="5"]) .pk-str {
+  opacity: 1;
+}
+
+.pk-knot {
+  position: absolute;
+  left: 30%;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin: -3px 0 0 -3px;
+  background: #ecc864;
+  border: 1px solid #6a4a14;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: transform .25s cubic-bezier(.3, 1.8, .5, 1);
+  z-index: 4;
+}
+
+.pack:is([data-step="4"], [data-step="5"]) .pk-knot {
+  transform: scale(1);
+}
+
+.pk-label {
+  margin-bottom: 14px;
+  font-size: .64em;
+}
+
+.pack.noleaf .pk-leaf,
+.pack.noleaf .pk-flap {
+  background: linear-gradient(180deg, #efe6cc, #c4b894);
+  border-color: #6a5a3a;
+}
+
+/* bỏ biểu tượng bàn tay chỉ lên khi gói xong */
+.cust.recv::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* ---------- Quầy chợ: ông Bảy nét hơn, biển hiệu ---------- */
+.mkt-lay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.mkt-vendor {
+  position: absolute;
+  left: 50%;
+  bottom: 35%;
+  width: 15.5%;
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  animation: vendorBob 2.2s ease-in-out infinite;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .25));
+}
+
+@keyframes vendorBob {
+  50% {
+    transform: translateX(-50%) translateY(-1.5%) scaleY(1.015);
+  }
+}
+
+.mkt-front {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.shop-sign {
+  font-size: .66em;
+  text-shadow: 0 0 6px currentColor, 1px 1px 0 #000;
+}
+
+.shop-sign.s1 {
+  left: 35%;
+  width: 30%;
+  color: #ffd0a0;
+  animation: neonFlick 3.2s infinite;
+}
+
+@keyframes neonFlick {
+  0%, 18%, 22%, 62%, 100% { opacity: 1; }
+  20%, 60% { opacity: .55; }
+}
+
+.shop-sign.s0 {
+  left: 3.5%;
+  width: 28%;
+}
+
+.shop-sign.s2 {
+  left: 72%;
+  width: 25%;
+}
+
+.cust .sprite {
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .3));
+}
+
+/* ---------- Hội làng: nhãn hiệu ứng ---------- */
+.fx-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: 2px 0 1px;
+}
+
+.fxt {
+  font-style: normal;
+  font-size: .68em;
+  line-height: 1;
+  padding: 1px 5px 2px;
+  color: #fff;
+  border: 2px solid rgba(0, 0, 0, .55);
+  text-shadow: 1px 1px 0 #0008;
+}
+
+.fxt.fx-combo { background: #e8632a; }
+.fxt.fx-bay { background: #3a8ad8; }
+.fxt.fx-nhay { background: #3aa850; }
+.fxt.fx-no { background: #d8281c; animation: fxPulse 1s infinite alternate; }
+.fxt.fx-sang { background: #b08a10; box-shadow: 0 0 8px #ffd23a; animation: fxPulse 1.4s infinite alternate; }
+
+@keyframes fxPulse {
+  to {
+    filter: brightness(1.45);
+  }
+}
+
+.fun .fun-ic {
+  filter: drop-shadow(0 0 6px rgba(255, 220, 120, .6));
+}
+
+.fun .buy {
+  align-self: center;
+}
+
+/* ======================================================================
+   Bản cập nhật: cảnh nền nét hơn, icon nguyên liệu vẽ riêng, trang chủ gọn,
+   kịch bản từng chương, khay xôi nhỏ lại
+   ====================================================================== */
+
+/* Cảnh nền vẽ ở độ phân giải cao: làm mịn thay vì vỡ hạt */
+#app canvas.scene-full,
+#app canvas.scene-cv,
+#app canvas.dlg-bg,
+#app canvas.mkt-front {
+  image-rendering: auto;
+}
+
+/* Bộ lọc màu của kịch bản chương chồng lên bộ lọc chủ đề màu */
+:root { --scn: brightness(1); }
+#app canvas.scene-full,
+#app canvas.scene-cv,
+#app canvas.dlg-bg,
+#app canvas.mg-bg,
+#app canvas.mkt-front {
+  filter: var(--sf) var(--scn);
+}
+#app canvas.scene-full.dim {
+  filter: var(--sf) var(--scn) brightness(.45) saturate(.8);
+}
+#app.scn-market_day { --scn: saturate(1.1); }
+#app.scn-festival { --scn: saturate(1.3) hue-rotate(-8deg); }
+#app.scn-union { --scn: saturate(1.1) hue-rotate(-14deg); }
+#app.scn-rain { --scn: brightness(.9) saturate(.9) hue-rotate(12deg); }
+#app.scn-tourist { --scn: saturate(1.25) brightness(1.05); }
+#app.scn-heat { --scn: sepia(.2) saturate(1.2) hue-rotate(-10deg) brightness(1.05); }
+#app.scn-night { --scn: brightness(.82) hue-rotate(22deg) saturate(1.15); }
+#app.scn-inflation { --scn: grayscale(.35); }
+#app.scn-harvest { --scn: sepia(.25) saturate(1.3); }
+#app.scn-cold { --scn: hue-rotate(28deg) saturate(.9) brightness(.95); }
+#app.scn-boom { --scn: saturate(1.35) brightness(1.04); }
+#app.scn-storm { --scn: brightness(.78) hue-rotate(18deg) saturate(.95); }
+
+.di-card.scn {
+  border-color: #ffb0f0;
+}
+
+.cm-scn {
+  margin-top: 3px;
+  font-size: .76em;
+  color: #ffe9a0;
+}
+
+.cm-stats .v {
+  color: #9ad8ff;
+}
+
+.scn-note {
+  padding: 4px 8px;
+  margin-bottom: 7px;
+  font-size: .85em;
+  line-height: 1;
+  background: #fff0b8;
+  border: 3px dashed var(--edge);
+  color: var(--ink);
+}
+
+.staff.chlocked {
+  opacity: .62;
+  filter: grayscale(.75);
+}
+
+/* Icon nguyên liệu vẽ riêng: nhỏ gọn, sắc nét */
+.ing-ic {
+  width: 30px;
+  height: 30px;
+  display: block;
+  image-rendering: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .18));
+}
+
+.tile .ico {
+  display: block;
+  line-height: 0;
+  font-size: 1em;
+  margin-top: 1px;
+}
+
+.tile .ico .ing-ic {
+  width: 29px;
+  height: 29px;
+}
+
+.nd {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font-size: .9em;
+}
+
+.nd .ing-ic,
+.nd-ic {
+  display: inline-block;
+  width: 17px;
+  height: 17px;
+  vertical-align: middle;
+}
+
+.ing-ic.sm {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
+
+.bubble .oimg,
+.bi-img,
+.pk-rice img {
+  image-rendering: auto;
+}
+
+/* Khay xôi ở màn bán hàng: thẻ nhỏ hơn, xếp 4 cột */
+.m-tray {
+  grid-template-columns: repeat(auto-fill, minmax(66px, 1fr));
+  gap: 6px;
+  padding: 8px;
+}
+
+.card {
+  min-height: 62px;
+  padding: 4px 1px 3px;
+}
+
+.card .bowl {
+  width: 50px !important;
+}
+
+.card .cn {
+  font-size: .68em;
+}
+
+/* Trang chủ gọn: cài đặt ở góc trên trái, hàng nút nhỏ ở đáy */
+.title-settings {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 5;
+}
+
+.title-menu {
+  bottom: 14%;
+}
+
+.title-bottom {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 24px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  z-index: 4;
+}
+
+.btn.tiny {
+  min-height: 30px;
+  padding: 3px 8px 6px;
+  font-size: .78em;
+  gap: 3px;
+  white-space: nowrap;
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .25), inset 0 2px 0 rgba(255, 255, 255, .28), 0 3px 0 var(--line);
+}
+
+.logo {
+  top: 11%;
+}
+
+.title-foot {
+  bottom: 4px;
+}

@@ -1,5 +1,14 @@
 /* Màn hình bếp: kho nguyên liệu, chọn món, đi chợ & đồ xôi, các tab nâng cấp/nhân viên/hội làng/điểm danh */
-const Kitchen = { scene: null, tab: 'bep', root: null, panel: null, cooking: false };
+const Kitchen = { scene: null, tab: 'bep', root: null, panel: null, cooking: false, equip: null };
+
+/* Thanh biểu tượng: mọi nâng cấp và nhân viên đã có đều hiện trên màn hình */
+function fillEquip(bar) {
+  bar.innerHTML = '';
+  DATA.UPGRADES.forEach((u) => { const l = Calc.lvl(u.id); if (l > 0) { const e = el('span', 'eq', u.icon + (u.costs.length > 1 ? '<i>' + l + '</i>' : '')); e.title = u.name; bar.appendChild(e); } });
+  DATA.STAFF.forEach((s) => { if (G.staff[s.id]) { const e = el('span', 'eq st'); e.title = s.name; e.appendChild(pixImg(Sprite.portrait(s.look), 0.62, 'hi')); bar.appendChild(e); } });
+}
+function equipBar() { const bar = el('div', 'equip'); fillEquip(bar); Kitchen.equip = bar; return bar; }
+Kitchen.refreshEquip = () => { if (Kitchen.equip && Kitchen.equip.isConnected) fillEquip(Kitchen.equip); };
 
 function weatherLayer(host, kind) {
   if (!S().weatherFx) return null;
@@ -36,6 +45,7 @@ UI.register('kitchen', {
     const wt = Calc.weather();
     const badge = el('div', 'k-badge', wt.icon + ' ' + wt.name + (ev ? ' · ' + ev.icon + ' ' + ev.title : ''));
     sceneBox.appendChild(badge);
+    sceneBox.appendChild(equipBar());
     const scene = Scenes.kitchen(cv); Kitchen.scene = scene; scene.staff = staffSprites([26, 104, 12]);
     const tick = Loop.add((dt) => scene.update(dt));
     // điểm chạm trên cảnh
@@ -69,14 +79,14 @@ UI.register('kitchen', {
     Kitchen.tab = Kitchen.tab || 'bep'; Kitchen.tab = 'bep';
     renderTab();
     Sound.ambient(G.weather === 'rain' ? 'rain' : 'night'); Sound.setTempo(1); if (Sound.ctx) Sound.playMusic();
-    if (G.day === 1 && !G.seenTut && S().hints) { G.seenTut = true; setTimeout(() => UI.toast('💡 Chạm vào kho để mua nguyên liệu, chọn mẻ rồi đồ xôi!', 'info'), 600); }
+    Tutor.run('kitchen');
     return () => { Loop.remove(tick); wx && wx(); };
   },
 });
 
 function pauseMenu() {
   const b = el('div', 'menu-list');
-  const items = [['▶️ Tiếp tục', 'gold', null], ['⚙️ Cài đặt', 'gray', () => Settings.open()], ['❓ Hướng dẫn', 'gray', () => Guide.open()], ['⛶ Toàn màn hình', 'gray', () => Device.toggle()], ['💾 Lưu & về trang chủ', 'gray', () => { Save.save(); UI.go('title'); }]];
+  const items = [['▶️ Tiếp tục', 'gold', null], ['⚙️ Cài đặt', 'gray', () => Settings.open()], ['❓ Hướng dẫn', 'gray', () => Guide.open()], ['💾 Lưu & về trang chủ', 'gray', () => { Save.save(); UI.go('title'); }]];
   items.forEach(([t, c, f]) => { const x = el('button', 'btn ' + c, t); x.onclick = () => { m.close(); if (f) f(); }; b.appendChild(x); });
   const m = UI.modal({ title: 'Tạm nghỉ', icon: '☰', body: b, dismiss: true });
 }
@@ -103,8 +113,8 @@ function renderBep(body, foot) {
   const note = Calc.lvl('note');
   let fore = '';
   if (note && G.mktNext) {
-    const dn = DATA.ING.filter((i) => G.mktNext[i.id] < 0.9).slice(0, 3).map((i) => i.icon).join('');
-    const up = DATA.ING.filter((i) => G.mktNext[i.id] > 1.15).slice(0, 3).map((i) => i.icon).join('');
+    const dn = DATA.ING.filter((i) => G.mktNext[i.id] < 0.9).slice(0, 3).map((i) => ingIcon(i.id, 'sm')).join('');
+    const up = DATA.ING.filter((i) => G.mktNext[i.id] > 1.15).slice(0, 3).map((i) => ingIcon(i.id, 'sm')).join('');
     fore = '<span class="fore">Mai: ' + (dn ? '▼' + dn : '') + ' ' + (up ? '▲' + up : '') + '</span>';
   }
   inv.innerHTML = '<div class="sec-h"><b>Kho nguyên liệu</b> · giá chợ hôm nay ' + fore + '</div>';
@@ -118,7 +128,7 @@ function renderBep(body, foot) {
     t.classList.toggle('has', n > 0);
   };
   DATA.ING.forEach((ing) => {
-    const t = el('button', 'tile', '<span class="ico">' + ing.icon + '</span><span class="cnt">0</span><span class="pr"></span><span class="nm">' + ing.name + (ing.pack ? ' ×' + ing.pack : '') + '</span>');
+    const t = el('button', 'tile', '<span class="ico">' + ingIcon(ing.id) + '</span><span class="cnt">0</span><span class="pr"></span><span class="nm">' + ing.name + (ing.pack ? ' ×' + ing.pack : '') + '</span>');
     t.title = ing.name; tiles[ing.id] = t; grid.appendChild(t);
     const buy = (qty) => {
       const price = Calc.ingPrice(ing.id) * qty;
@@ -147,7 +157,7 @@ function renderBep(body, foot) {
     const row = el('div', 'rec' + (known ? '' : ' locked'));
     const ic = pixImg(Sprite.bowl(r.color, r.id), 1.5, 'bowl hi');
     const info = el('div', 'rec-info');
-    const needs = Object.entries(r.need).map(([k, v]) => '<span class="nd" data-k="' + k + '" data-v="' + v + '">' + DATA.ING_BY[k].icon + '<i>' + v + '</i></span>').join('');
+    const needs = Object.entries(r.need).map(([k, v]) => '<span class="nd" data-k="' + k + '" data-v="' + v + '">' + ingIcon(k, 'nd-ic') + '<i>' + v + '</i></span>').join('');
     info.innerHTML = '<b class="rn">' + r.name + '</b><div class="needs">' + needs + '</div><small class="rs"></small>';
     row.appendChild(ic); row.appendChild(info);
     if (known) {
@@ -215,10 +225,10 @@ const Cooking = {
     if (hasLack) {
       ov.innerHTML = '<div class="cook-box walk"><div class="cook-title">Đi chợ…</div><div class="walk-strip"><canvas class="pix"></canvas></div><div class="lack"></div></div>';
       const lk = $('.lack', ov);
-      Object.entries(lack).forEach(([k, n], i) => { setTimeout(() => { Sound.sfx('buy'); lk.innerHTML += '<span class="nd">' + DATA.ING_BY[k].icon + '<i>+' + n + '</i></span>'; }, 300 + i * 220); });
+      Object.entries(lack).forEach(([k, n], i) => { setTimeout(() => { Sound.sfx('buy'); lk.innerHTML += '<span class="nd">' + ingIcon(k, 'nd-ic') + '<i>+' + n + '</i></span>'; }, 300 + i * 220); });
       const cv = $('canvas', ov), mk = Scenes.market(cv, { H: 82 }); cv.style.width = '100%';
       const v = Sprite.vendor({ skin: '#d9a070', hair: '#cfcfcf', shirt: '#8a5a38', pants: '#2c2a30' });
-      let tt = 0; const fn = Loop.add((dt) => { tt += dt; mk.update(dt); const cx = cv.getContext('2d'); cx.drawImage(v, Math.round(-30 + tt * 40) % 150 - 20, 44); });
+      let tt = 0; const fn = Loop.add((dt) => { tt += dt; mk.update(dt); const cx = cv.getContext('2d'); cx.drawImage(v, Math.round(-30 + tt * 40) % 150 - 20, 44, 36, 30); });
       await sleep(600 + Object.keys(lack).length * 220 + 500); Loop.remove(fn);
       G.cash -= cost; G.today.cost += cost;
       Object.entries(lack).forEach(([k, n]) => { G.ingr[k] = (G.ingr[k] || 0) + n; });

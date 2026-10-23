@@ -6,7 +6,7 @@ const DEFAULT_SETTINGS = {
   scanlines: false, transitions: true, uiTheme: 'night', fontScale: 1,
   textSpeed: 2, moneyShort: false, confirmEnd: true, hints: true, bigButtons: false,
   hapticTap: true, ripple: true, ambientFx: 'off', vignette: false, brightness: 1, btnStyle: 'pixel',
-  autoFull: !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches), keepAwake: false,
+  autoFull: true, fullV: 3, keepAwake: true,
 };
 const Save = {
   KEY: 'tiemxoi_ongbay_v1',
@@ -15,7 +15,11 @@ const Save = {
     let r = null;
     try { r = JSON.parse(localStorage.getItem(this.KEY)); } catch (e) { r = null; }
     if (!r || typeof r !== 'object') r = {};
-    r.settings = Object.assign({}, DEFAULT_SETTINGS, r.settings || {});
+    const old = r.settings || {};
+    r.settings = Object.assign({}, DEFAULT_SETTINGS, old);
+    if (old.fullV !== 3) { r.settings.autoFull = true; r.settings.keepAwake = true; r.settings.fullV = 3; } // luôn chơi toàn màn hình, không còn cài đặt
+    r.chap = Object.assign({ easy: 1, normal: 1, hard: 1 }, r.chap || {}); // chương cao nhất đã mở theo độ khó
+    r.carry = r.carry || {}; r.tut = r.tut || {};
     r.checkin = Object.assign({ last: null, idx: 0, total: 0 }, r.checkin || {});
     r.records = Object.assign({ wins: 0, plays: 0, best: 0, minigames: 0 }, r.records || {});
     r.introSeen = !!r.introSeen;
@@ -31,22 +35,37 @@ const Save = {
 let G = null; // game hiện tại (Save.root.game)
 const S = () => Save.root.settings;
 
-function newGame(diff) {
+function newGame(diff, chapter = 1) {
   const d = DATA.DIFF[diff] || DATA.DIFF.normal;
+  const ch = DATA.CHAPTERS[chapter - 1] || DATA.CHAPTERS[0];
   const g = {
-    v: 1, diff, day: 1, debt: d.debt, cash: DATA.SEED, savings: 0, rep: 55,
+    v: 1, diff, chapter: ch.id, venue: ch.venue, maxDays: ch.days, day: 1, debt: Math.round((d.debt * ch.debt) / 50000) * 50000, cash: ch.seed || DATA.SEED, seed: ch.seed || DATA.SEED, savings: 0, rep: 55,
     ingr: { nep: 2, dau: 1, hanh: 1, la: 8 }, stock: {},
     recipes: { doxanh: true, lac: true, gac: true }, upg: {}, staff: {},
     plan: {}, prices: {}, mkt: {}, mktNext: null, ref: {}, weather: 'sun', event: null,
     stats: { sold: 0, revenue: 0, served: 0, lost: 0 },
     today: null, mg: { tokens: 3, played: 0 }, bonus: 0, intro: false, mktFee: 10000,
   };
+  // sang chương mới: giữ nâng cấp, nhân viên và công thức của chương trước
+  const cr = Save.root && Save.root.carry && Save.root.carry[diff];
+  if (chapter > 1 && cr) {
+    g.upg = Object.assign({}, cr.upg); g.staff = Object.assign({}, cr.staff); g.recipes = Object.assign(g.recipes, cr.recipes);
+  }
   return g;
 }
 
 /* ===== Công thức ===== */
 const Calc = {
   lvl(id) { return (G.upg && G.upg[id]) || 0; },
+  scn() { return this.chapter().scn || DATA.SCN.plain; },
+  hireCost(s) { return Math.round((s.hire * (this.scn().hire || 1)) / 5000) * 5000; },
+  wageOf(s) { return Math.round((s.wage * (this.scn().wage || 1)) / 1000) * 1000; },
+  seed() { return G.seed || DATA.SEED; }, // vốn ông cấp mỗi sáng, tăng dần theo chương
+  maxDays() { return G.maxDays || DATA.MAX_DAYS; },
+  chapter() { return DATA.CHAPTERS[(G.chapter || 1) - 1] || DATA.CHAPTERS[0]; },
+  isShop() { return G.venue === 'shop'; },
+  /* xác suất chặn trộm của các bảo vệ đang thuê */
+  theftBlock() { let miss = 1; DATA.STAFF.forEach((s) => { if (G.staff[s.id] && s.fx.theft) miss *= 1 - s.fx.theft; }); return 1 - miss; },
   hasStaff(id) { return !!(G.staff && G.staff[id]); },
   staffFx(key) {
     let v = 0;
@@ -64,10 +83,12 @@ const Calc = {
   seats() { return 3 + this.lvl('chair'); },
   patience() { return 24 * (1 + [0, 0.2, 0.4][this.lvl('tea')] + this.staffFx('patience')); },
   priceTol() { return 1.06 + (this.lvl('scale') ? 0.1 : 0); },
-  tip() { const e = this.event(); return (this.lvl('leaf') >= 2 ? 0.1 : 0) + (e && e.tip ? e.tip : 0); },
+  tip() { const e = this.event(); return (this.lvl('leaf') >= 2 ? 0.1 : 0) + (e && e.tip ? e.tip : 0) + (this.scn().tip || 0); },
   marketFee() {
     const e = this.event();
-    let fee = G.mktFee + (e && e.fee && !this.hasStaff('ba') ? e.fee : 0);
+    let extra = 0;
+    if (e && e.fee) extra = this.isShop() ? (this.lvl('lic') ? 0 : 30000) + (this.lvl('atp') ? 0 : 30000) : (this.hasStaff('ba') ? 0 : e.fee);
+    let fee = G.mktFee + extra;
     return Math.round(fee * (1 - this.staffFx('fee')));
   },
   envMul() {
@@ -80,7 +101,7 @@ const Calc = {
     const d = DATA.DIFF[G.diff] || DATA.DIFF.normal;
     const repF = 0.6 + 0.8 * (G.rep / 100);
     const boost = 1 + [0, 0.15, 0.3, 0.45][this.lvl('loud')] + [0, 0.08, 0.16, 0.24][this.lvl('sign')] + this.staffFx('cust');
-    return repF * boost * this.envMul() * (e && e.cust ? e.cust : 1) * d.cust;
+    return repF * boost * this.envMul() * (e && e.cust ? e.cust : 1) * d.cust * this.chapter().cust * (this.scn().cust || 1) * (this.lvl('atp') ? 1.05 : 1);
   },
   stars() { return clamp(Math.ceil(G.rep / 20), 1, 5); },
   /* nguyên liệu */
@@ -88,7 +109,7 @@ const Calc = {
     const base = DATA.ING_BY[id].price * 1000;
     const f = G.mkt[id] || 1;
     const e = this.event();
-    const em = e && e.ingr && e.ingr[id] ? e.ingr[id] : 1;
+    const em = (e && e.ingr && e.ingr[id] ? e.ingr[id] : 1) * (this.scn().ingr || 1);
     return Math.max(500, Math.round((base * f * em * (1 - this.staffFx('buy'))) / 500) * 500);
   },
   trend(id) {
@@ -136,11 +157,12 @@ function rollDay() {
   G.mkt = G.mktNext || rollMarket(r);
   G.mktNext = rollMarket(r);
   // thời tiết
-  const total = DATA.WEATHER.reduce((a, w) => a + w.w, 0); let x = Math.random() * total;
+  const sw = Calc.scn().weather || {}, wt = (w) => w.w * (sw[w.id] != null ? sw[w.id] : 1);
+  const total = DATA.WEATHER.reduce((a, w) => a + wt(w), 0); let x = Math.random() * total;
   G.weather = DATA.WEATHER[0].id;
-  for (const w of DATA.WEATHER) { x -= w.w; if (x <= 0) { G.weather = w.id; break; } }
+  for (const w of DATA.WEATHER) { x -= wt(w); if (x <= 0) { G.weather = w.id; break; } }
   // sự kiện
-  G.event = (G.day > 1 && chance(0.6)) ? pick(DATA.EVENTS).id : null;
+  G.event = (G.day > 1 && chance(Calc.scn().ev != null ? Calc.scn().ev : 0.6)) ? pick(DATA.EVENTS).id : null;
   if (G.day === 1) G.weather = 'sun';
   // giá tham khảo để bán
   G.ref = {};

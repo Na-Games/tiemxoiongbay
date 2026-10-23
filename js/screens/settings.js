@@ -1,3 +1,9 @@
+/* Màu xem trước của từng chủ đề giao diện: [thanh trên, nút chính, khung giấy, nền] */
+const THEME_SW = {
+  night: ['#2a1820', '#c8452e', '#f1e2b8', '#0e0a1c'], dusk: ['#4a1c3a', '#e0506a', '#f8e0c8', '#2a0e26'], tet: ['#6a1018', '#e0281c', '#fff0c8', '#2a0608'],
+  jade: ['#0e4a40', '#2a9a74', '#e8f4d8', '#061c18'], sakura: ['#5a1a46', '#ec5a92', '#ffeaf1', '#2a0c20'], ocean: ['#0e3a66', '#2a82c8', '#e2f2fa', '#06182c'],
+  coffee: ['#3a2014', '#a85a2c', '#f2e2c8', '#1c0e08'], sun: ['#6a4210', '#f0782a', '#fff6d0', '#2a1a06'], violet: ['#301c5a', '#7e56d0', '#efe8fc', '#120a2e'],
+};
 /* Cài đặt: âm thanh (nhiều chủ đề), rung, hiệu ứng, giao diện, dữ liệu */
 const Settings = {
   toggleMute() {
@@ -96,18 +102,14 @@ const Settings = {
         grid([['off', 'Tắt', '🚫'], ['firefly', 'Đom đóm', '✨'], ['petal', 'Cánh hoa', '🌸'], ['sparkle', 'Bụi vàng', '🌟'], ['lantern', 'Đèn lồng', '🏮']], 'ambientFx', () => { if (S().ambientFx !== 'off') UI.toast('Đã bật hiệu ứng nền', 'ok'); });
       } else if (cur === 'ui') {
         head('Giao diện màu');
-        grid([['night', 'Đêm làng', '🌌'], ['dusk', 'Hoàng hôn', '🌇'], ['tet', 'Tết đỏ', '🧧'], ['jade', 'Ngọc bích', '🍃'], ['sakura', 'Hoa đào', '🌸'], ['ocean', 'Biển xanh', '🌊'], ['coffee', 'Cà phê sữa', '☕'], ['sun', 'Nắng sớm', '🌅'], ['violet', 'Tím mộng', '🔮']], 'uiTheme');
+        grid([['night', 'Đêm làng', '🌌'], ['dusk', 'Hoàng hôn', '🌇'], ['tet', 'Tết đỏ', '🧧'], ['jade', 'Ngọc bích', '🍃'], ['sakura', 'Hoa đào', '🌸'], ['ocean', 'Biển xanh', '🌊'], ['coffee', 'Cà phê sữa', '☕'], ['sun', 'Nắng sớm', '🌅'], ['violet', 'Tím mộng', '🔮']], 'uiTheme', () => UI.toast('Đã đổi giao diện màu', 'ok'));
+        $$('.theme-grid .tg', pane).forEach((b, i) => { const k = ['night', 'dusk', 'tet', 'jade', 'sakura', 'ocean', 'coffee', 'sun', 'violet'][i]; b.appendChild(el('span', 'sw', THEME_SW[k].map((c) => '<i style="background:' + c + '"></i>').join(''))); });
         head('Kiểu hiển thị');
         choice('Kiểu nút & khung', 'btnStyle', [['pixel', 'Vuông pixel'], ['round', 'Bo tròn']]);
         choice('Cỡ chữ', 'fontScale', [[0.9, 'Nhỏ'], [1, 'Vừa'], [1.12, 'Lớn']]);
         range('Độ sáng', 'brightness', 70, 125);
         toggle('Nút bấm lớn', 'bigButtons', 'Dễ bấm hơn trên điện thoại');
         toggle('Tiền rút gọn (k, tr)', 'moneyShort', null, () => UI.updateHud());
-        head('Màn hình');
-        const fs = el('button', 'btn gold small', Device.isFull() ? '🗗 Thoát toàn màn hình' : '⛶ Toàn màn hình');
-        fs.onclick = () => { Device.toggle(); setTimeout(render, 300); };
-        row('Toàn màn hình', fs, Device.hint());
-        toggle('Tự vào toàn màn hình', 'autoFull', 'Chạm lần đầu là ẩn thanh địa chỉ');
         toggle('Giữ màn hình luôn sáng', 'keepAwake', navigator.wakeLock ? 'Không tự tắt màn hình khi đang chơi' : 'Trình duyệt này chưa hỗ trợ');
       } else if (cur === 'game') {
         head('Lối chơi');
@@ -116,7 +118,7 @@ const Settings = {
         toggle('Hiện gợi ý trong game', 'hints');
         if (G) {
           head('Ván đang chơi');
-          const info = el('div', 'set-info', 'Độ khó: <b>' + DATA.DIFF[G.diff].name + '</b> · Ngày ' + G.day + '/' + DATA.MAX_DAYS + ' · Đã dành: ' + fmt(G.savings) + '/' + fmt(G.debt));
+          const info = el('div', 'set-info', 'Độ khó: <b>' + DATA.DIFF[G.diff].name + '</b> · Chương ' + (G.chapter || 1) + ' · Ngày ' + G.day + '/' + Calc.maxDays() + ' · Đã dành: ' + fmt(G.savings) + '/' + fmt(G.debt));
           pane.appendChild(info);
         }
       } else if (cur === 'data') {
@@ -131,7 +133,7 @@ const Settings = {
           UI.modal({ title: 'Nhập mã lưu', body: ta, buttons: [{ label: 'Hủy', cls: 'gray' }, { label: 'Nhập', cls: 'red', onClick: () => { try { const o = JSON.parse(decodeURIComponent(escape(atob(ta.value.trim())))); Save.root = o; Save.save(); location.reload(); } catch (e) { UI.toast('Mã lưu không hợp lệ', 'err'); return false; } } }] });
         };
         const b3 = el('button', 'btn red', '🗑️ Xóa toàn bộ dữ liệu');
-        b3.onclick = async () => { if (await UI.confirm('Xóa toàn bộ tiến trình và cài đặt?', 'Xóa hết', 'Giữ lại')) { Save.wipe(); location.reload(); } };
+        b3.onclick = async () => { if (await UI.confirm('⚠️ Xóa toàn bộ tiến trình, chương, nhân viên và cài đặt? Không thể hoàn tác!', 'Xóa hết', 'Giữ lại')) { G = null; Save.wipe(); Save.root = null; location.reload(); } };
         const w = el('div', 'btn-col'); [b1, b2, b3].forEach((b) => w.appendChild(b)); pane.appendChild(w);
         const rec = Save.root.records;
         pane.appendChild(el('div', 'set-info', 'Thành tích: thắng <b>' + rec.wins + '</b> ván · chơi <b>' + rec.plays + '</b> ván · trò dân gian <b>' + rec.minigames + '</b> lượt'));

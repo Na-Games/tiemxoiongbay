@@ -37,8 +37,8 @@ Scenes.kitchen = function (canvas, opt = {}) {
   const W = opt.W || 120, H = opt.H || 90;
   const fy = opt.floorY != null ? opt.floorY : 68;
   canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d'); ctx.imageSmoothingEnabled = false;
-  const bg = mkCanvas(W, H), bx = bg.x;
+  const ctx = sceneCtx(canvas, W, H);
+  const bg = mkCanvas(W, H, SC), bx = bg.x;
   const rng = mulberry32(42);
   // trần + xà
   R(bx, '#1c1424', 0, 0, W, 9);
@@ -113,8 +113,8 @@ Scenes.kitchen = function (canvas, opt = {}) {
 
   // thành phần động
   const puffs = []; let emit = 0; let cooking = false; let t = 0; let fan = 0;
-  const catS = [Sprite.cat('#d8a050'), Sprite.cat('#d8a050')];
-  const ongCv = [Sprite.char(DATA.CHARS.ongbay.look), Sprite.char(DATA.CHARS.ongbay.look, { blink: true })];
+  const catHi = Sprite.cat('#d8a050');
+  const ongCv = [Sprite.charHi(DATA.CHARS.ongbay.look), Sprite.charHi(DATA.CHARS.ongbay.look, { blink: true })];
   const ctl = {
     hot: { stove: [bxs, byb - 30, 34, 52], ong: [80, fy - 6, 18, 27], cat: [28, fy + 2, 14, 10], jar: [90, fy - 16, 24, 28] },
     char: opt.char === false ? null : { x: opt.charX != null ? opt.charX : 80, y: fy - 6 },
@@ -123,9 +123,9 @@ Scenes.kitchen = function (canvas, opt = {}) {
     poke() { fan = 1; },
     update(dt, tt) {
       t += dt; fan = Math.max(0, fan - dt * 2);
-      ctx.drawImage(bg.c, 0, 0);
+      ctx.drawImage(bg.c, 0, 0, W, H);
       stars.forEach((s) => { if (Math.sin(t * 2 + s.p) > -0.2) P(ctx, '#e8f0ff', s.x, s.y); });
-      if (opt.bare) { ctx.drawImage(catS[0], 0, 0, 14, 10, 29, fy + 1, 14, 10); return; }
+      if (opt.bare) { ctx.drawImage(catHi, 28, fy, 16, 12); return; }
       const heat = (cooking ? 1.5 : 1) + fan;
       // ánh lửa
       ctx.fillStyle = 'rgba(255,150,60,' + (0.07 + 0.03 * Math.sin(t * 9)) * heat + ')';
@@ -153,14 +153,13 @@ Scenes.kitchen = function (canvas, opt = {}) {
         disc(ctx, 'rgba(240,244,250,' + a.toFixed(2) + ')', p.x, p.y, p.r + p.l * 1.4);
       }
       // mèo
-      ctx.drawImage(catS[0], 0, 0, 14, 10, 29, fy + 1, 14, 10);
-      if (Math.sin(t * 1.3) > 0.7) R(ctx, '#d8a050', 27, fy + 4 + (Math.sin(t * 8) > 0 ? 1 : 0), 2, 1);
-      (ctl.staff || []).forEach((st) => { ctx.drawImage(st.cv, st.x, fy - 6 + Math.round(Math.sin(t * 3 + st.p) * 0.7)); });
+      ctx.drawImage(catHi, 28, fy + Math.round(Math.sin(t * 1.6) * 0.4), 16, 12);
+      (ctl.staff || []).forEach((st) => { drawChar(ctx, st.cv, st.x, fy - 6 + Math.sin(t * 3 + st.p) * 0.7); });
       // nhân vật
       if (ctl.char) {
         const bob = Math.round(Math.sin(t * (cooking ? 8 : 2.5)) * (cooking ? 1 : 0.6));
         const blink = (t % 3.4) > 3.25;
-        ctx.drawImage(ongCv[blink ? 1 : 0], ctl.char.x, ctl.char.y + bob);
+        drawChar(ctx, ongCv[blink ? 1 : 0], ctl.char.x, ctl.char.y + bob);
         // cái muôi
         if (cooking) R(ctx, '#a07040', ctl.char.x - 4, ctl.char.y + 12 + bob + Math.round(Math.sin(t * 10)), 5, 1);
         else R(ctx, '#f0e0a0', ctl.char.x - 3, ctl.char.y + 16 + bob, 3, 2);
@@ -175,9 +174,9 @@ Scenes.title = function (canvas) {
   const W = 96;
   const H = Math.max(160, Math.min(260, Math.round(W * (canvas.clientHeight || 640) / (canvas.clientWidth || 360))));
   canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d'); ctx.imageSmoothingEnabled = false;
-  const bg = mkCanvas(W, H), x = bg.x, rng = mulberry32(7);
-  const yH = Math.round(H * 0.6);
+  const ctx = sceneCtx(canvas, W, H);
+  const bg = mkCanvas(W, H, SC), x = bg.x, rng = mulberry32(7);
+  const yH = Math.round(H * 0.46);
   gradBands(x, W, 0, yH, [[0, '#0b0826'], [0.3, '#1a1250'], [0.55, '#4a2672'], [0.75, '#b0407a'], [0.9, '#f07a48'], [1, '#f8b862']]);
   // mặt trời
   const sunX = Math.round(W * 0.66), sunY = yH - 3;
@@ -262,7 +261,7 @@ Scenes.title = function (canvas) {
     W, H,
     update(dt) {
       t += dt;
-      ctx.drawImage(bg.c, 0, 0);
+      ctx.drawImage(bg.c, 0, 0, W, H);
       starsA.forEach((s) => { const a = Math.sin(t * 2 + s.p); if (a > -0.3) P(ctx, a > 0.7 ? '#ffffff' : '#a8a8d8', s.x, s.y); });
       birds.forEach((b, i) => {
         b.x += dt * b.s; b.y += Math.sin(t + i) * dt * 2; if (b.x > W + 6) b.x = -8;
@@ -278,41 +277,89 @@ Scenes.title = function (canvas) {
         if (Math.sin(t * 3 + f.p) > 0) { P(ctx, '#f0f070', f.x, f.y); P(ctx, 'rgba(240,240,100,.3)', f.x + 1, f.y); }
       });
       // người gánh xôi bước đi
-      const step = Math.sin(t * 5); const vy = Math.round(H * 0.8 + Math.abs(step) * 0.8);
-      ctx.drawImage(vend, Math.round(W / 2 - 15), vy - 30);
+      const step = Math.sin(t * 5); const vy = Math.round(H * 0.6 + Math.abs(step) * 0.8);
+      ctx.drawImage(vend, Math.round(W / 2 - 18), vy - 30, 36, 30);
       R(ctx, 'rgba(0,0,0,.25)', W / 2 - 6, vy, 12, 1);
     },
   };
 };
 
-/* ---------- CHỢ SÁNG ---------- */
+/* ---------- CHỢ SÁNG: tạp hóa, cà phê, rau quả sinh động có hoạt họa ---------- */
 Scenes.market = function (canvas, opt = {}) {
   const W = 120, H = opt.H || 100, OY = 8;
   canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d'); ctx.imageSmoothingEnabled = false;
-  const bg = mkCanvas(W, H), x = bg.x, rng = mulberry32(21);
+  const ctx = sceneCtx(canvas, W, H);
+  const bg = mkCanvas(W, H, SC), x = bg.x, rng = mulberry32(21);
   x.translate(0, OY);
   const gy = 40; // mặt đường
-  R(x, '#9ac4d8', 0, -OY, W, gy + OY);
-  // ba cửa hiệu
-  const shops = [{ x: 0, w: 38, wall: '#6a9ac0', door: '#44546a', aw1: '#d84a3a', aw2: '#f4e4c8' }, { x: 38, w: 44, wall: '#58b0a0', door: '#8a8a8a', aw1: '#3a6aa8', aw2: '#f4e4c8' }, { x: 82, w: 38, wall: '#e890a8', door: '#58585e', aw1: '#4aa058', aw2: '#f4e4c8' }];
+  // trời, mây
+  for (let y = -OY; y < 8; y++) R(x, mix('#78b2d8', '#d4eaf2', (y + OY) / 16), 0, y, W, 1);
+  [[10, -3, 8], [66, -5, 9], [102, -1, 7]].forEach(([cx, cy, r]) => { disc(x, 'rgba(255,255,255,.8)', cx, cy, r, 2.6); disc(x, 'rgba(255,255,255,.8)', cx + 5, cy - 1.5, r * 0.6, 2.6); });
+  // nhà cao tầng phía xa
+  [[2, 10, 4], [30, 14, 3], [70, 12, 5], [96, 16, 3], [112, 9, 4]].forEach(([bx2, bh, bw]) => { R(x, '#8aa0b8', bx2, 6 - bh * 0.3, bw * 3, bh); R(x, '#a8bccc', bx2, 6 - bh * 0.3, bw * 3, 1); });
+
+  const shops = [
+    { x: 0, w: 38, wall: '#d9a55e', trim: '#8a5a2a', aw1: '#d84a3a', aw2: '#f4e4c8', kind: 'gro' },
+    { x: 38, w: 44, wall: '#4f9c8c', trim: '#2a5a50', aw1: '#3a6aa8', aw2: '#f4e4c8', kind: 'cafe' },
+    { x: 82, w: 38, wall: '#92c474', trim: '#3a6a2a', aw1: '#3a9a48', aw2: '#f6f2d4', kind: 'veg' },
+  ];
   shops.forEach((s) => {
-    R(x, s.wall, s.x, 6, s.w, gy - 6); R(x, shade(s.wall, -25), s.x, 6, 1, gy - 6); R(x, shade(s.wall, 20), s.x + 1, 6, s.w - 1, 2);
-    // cửa cuốn / cửa sổ
-    R(x, s.door, s.x + 5, 22, s.w - 10, gy - 22); for (let yy = 23; yy < gy; yy += 2) R(x, shade(s.door, -14), s.x + 5, yy, s.w - 10, 1);
-    // cửa sổ trên
-    R(x, '#1a3a4a', s.x + 6, 10, 9, 7); R(x, '#4a8aa8', s.x + 7, 11, 7, 5); R(x, '#1a3a4a', s.x + s.w - 15, 10, 9, 7); R(x, '#4a8aa8', s.x + s.w - 14, 11, 7, 5);
-    // biển hiệu
-    R(x, shade(s.wall, -55), s.x + 4, 18, s.w - 8, 6);
-    // mái hiên sọc
-    for (let i = 0; i < s.w - 6; i += 4) { R(x, i % 8 === 0 ? s.aw1 : s.aw2, s.x + 3 + i, 24, 4, 4); R(x, shade(i % 8 === 0 ? s.aw1 : s.aw2, -28), s.x + 3 + i, 27, 4, 1); }
+    // tường có vân gạch + cột hai bên
+    R(x, s.wall, s.x, 5, s.w, gy - 5);
+    for (let yy = 7; yy < gy; yy += 3) R(x, shade(s.wall, -9), s.x, yy, s.w, 1);
+    R(x, shade(s.wall, -34), s.x, 5, 1, gy - 5); R(x, shade(s.wall, -34), s.x + s.w - 1, 5, 1, gy - 5); R(x, shade(s.wall, 22), s.x + 1, 5, 1, gy - 5);
+    R(x, s.trim, s.x, 3, s.w, 3); R(x, shade(s.trim, 46), s.x, 3, s.w, 1); R(x, shade(s.trim, -40), s.x, 5, s.w, 1);
+    // tầng trên
+    if (s.kind === 'gro') {
+      [6, 24].forEach((wx) => { R(x, s.trim, s.x + wx - 1, 7, 10, 10); R(x, '#324a66', s.x + wx, 8, 8, 8); R(x, '#5a82a8', s.x + wx, 8, 8, 3); R(x, '#8ab2d0', s.x + wx + 1, 9, 2, 5); R(x, s.trim, s.x + wx + 3, 8, 1, 8); R(x, '#4a7a3a', s.x + wx - 3, 7, 2, 10); R(x, '#4a7a3a', s.x + wx + 9, 7, 2, 10); });
+      R(x, '#7a4a28', s.x + 5, 17, 5, 2); disc(x, '#4aa04a', s.x + 7, 16, 2, 1.6); disc(x, '#ff6a8a', s.x + 7, 15, 0.8, 0.8);
+    } else if (s.kind === 'cafe') {
+      R(x, s.trim, s.x + 5, 7, s.w - 10, 10); R(x, '#ffd890', s.x + 6, 8, s.w - 12, 8); R(x, '#ffe8b4', s.x + 6, 8, s.w - 12, 3);
+      for (let k = 1; k < 4; k++) R(x, s.trim, s.x + 6 + k * ((s.w - 12) / 4), 8, 1, 8);
+      R(x, '#7a4a28', s.x + 5, 16, s.w - 10, 2); for (let k = 0; k < 14; k++) { P(x, pick(['#ff6a8a', '#ffd23a', '#fff', '#ff9a4a']), s.x + 6 + k * 2.6, 15); P(x, '#3a8a3a', s.x + 6 + k * 2.6, 16); }
+    } else {
+      [5, 25].forEach((wx) => { R(x, s.trim, s.x + wx - 1, 7, 10, 10); R(x, '#5a8a58', s.x + wx, 8, 8, 8); R(x, '#a8d4a0', s.x + wx, 8, 8, 3); R(x, s.trim, s.x + wx + 3, 8, 1, 8); });
+      for (let k = 0; k < 8; k++) { R(x, '#2f7a30', s.x + 4 + k * 4, 17, 1, 2 + (k % 3)); P(x, '#ff6a4a', s.x + 4 + k * 4, 19 + (k % 3)); }
+      R(x, '#7a4a28', s.x + 3, 17, s.w - 6, 1);
+    }
+    // biển hiệu có viền sáng và đèn rọi
+    R(x, shade(s.trim, -30), s.x + 3, 17, s.w - 6, 8); R(x, shade(s.trim, 30), s.x + 3, 17, s.w - 6, 1); R(x, '#16100c', s.x + 4, 18, s.w - 8, 6);
+    for (let k = 0; k < 4; k++) P(x, '#ffe070', s.x + 6 + k * ((s.w - 12) / 3), 17);
+    // mái hiên sọc vải bố có diềm tròn
+    for (let i = 0, k = 0; i < s.w - 4; i += 4, k++) {
+      const col = k % 2 ? s.aw2 : s.aw1;
+      R(x, col, s.x + 2 + i, 25, 4, 4); R(x, shade(col, 24), s.x + 2 + i, 25, 4, 1); R(x, shade(col, -28), s.x + 2 + i, 28, 4, 1); P(x, col, s.x + 3 + i, 29); P(x, col, s.x + 4 + i, 29);
+    }
+    R(x, '#2a1a14', s.x + 2, 24, s.w - 4, 1);
+    // bên trong cửa hàng
+    if (s.kind === 'gro') {
+      R(x, '#3a2a1a', s.x + 3, 30, s.w - 6, gy - 30); R(x, '#4a3622', s.x + 3, 30, s.w - 6, 2);
+      [32, 36].forEach((sy2) => { R(x, '#8a5a30', s.x + 3, sy2 + 2, s.w - 6, 1); for (let k = 0; k < 8; k++) { const cl = ['#d84a3a', '#f0c030', '#3a8ad8', '#5ac84a', '#e8e8e0', '#c85ad8'][(k + sy2) % 6]; R(x, cl, s.x + 4 + k * 4, sy2 - 1 + (k % 2), 3, 3 - (k % 2)); P(x, 'rgba(255,255,255,.6)', s.x + 4 + k * 4, sy2 - 1 + (k % 2)); } });
+      R(x, '#5a3a20', s.x + 3, 38, s.w - 6, 2);
+    } else if (s.kind === 'cafe') {
+      R(x, '#4a2c1c', s.x + 3, 30, s.w - 6, gy - 30); R(x, '#6a4228', s.x + 3, 30, s.w - 6, 2);
+      R(x, '#0e2a20', s.x + 26, 31, 14, 7); R(x, '#d8e8e0', s.x + 28, 32, 9, 1); R(x, '#d8e8e0', s.x + 28, 34, 6, 1); R(x, '#f0c860', s.x + 28, 36, 7, 1); R(x, '#8a5a30', s.x + 26, 31, 14, 1); R(x, '#8a5a30', s.x + 26, 37, 14, 1);
+      R(x, '#9aa0a8', s.x + 6, 31, 10, 6); R(x, '#c8ced4', s.x + 6, 31, 10, 1); R(x, '#5a6068', s.x + 6, 36, 10, 1); R(x, '#222', s.x + 8, 33, 2, 3); R(x, '#222', s.x + 12, 33, 2, 3);
+      R(x, '#8a5a30', s.x + 3, 37, s.w - 6, 3); R(x, '#b88a50', s.x + 3, 37, s.w - 6, 1);
+      [[19, '#fff'], [24, '#e84a3a'], [31, '#fff']].forEach(([cx2, cl]) => { R(x, cl, s.x + cx2, 35, 3, 2); P(x, '#3a2418', s.x + cx2 + 1, 35); });
+    } else {
+      R(x, '#2e4a2a', s.x + 3, 30, s.w - 6, gy - 30); R(x, '#3e5e38', s.x + 3, 30, s.w - 6, 2);
+      R(x, '#7a4a28', s.x + 3, 34, s.w - 6, 1); R(x, '#7a4a28', s.x + 3, 38, s.w - 6, 2);
+      const veg = ['#e8402c', '#5ac84a', '#f08a28', '#9a4ac0', '#f2d040', '#8ad858'];
+      for (let k = 0; k < 8; k++) { disc(x, veg[k % 6], s.x + 6 + k * 3.7, 32.5, 1.6, 1.4); disc(x, veg[(k + 2) % 6], s.x + 5 + k * 3.7, 36.5, 1.7, 1.5); }
+    }
   });
-  R(x, '#2a2e3a', 0, 4, W, 1); R(x, '#2a2e3a', 20, 4, 1, 6); R(x, '#2a2e3a', 100, 4, 1, 5); // dây điện
-  // hàng trái cây trên bàn bên trái & phải
-  [[2, 30, ['#e8a030', '#d83a3a', '#58b040']], [90, 30, ['#58b040', '#78c850', '#a8d858']]].forEach(([sx, sy, cols]) => {
-    R(x, '#6a4a30', sx, sy + 4, 28, 2); R(x, '#4a2c1c', sx + 1, sy + 6, 2, 5); R(x, '#4a2c1c', sx + 25, sy + 6, 2, 5);
-    for (let i = 0; i < 9; i++) disc(x, cols[i % 3], sx + 3 + i * 3, sy + 3, 1.7);
-  });
+  R(x, '#2a2e3a', 0, 4, W, 0); // (dây điện được vẽ động ở update)
+
+  // quầy hàng phía trước: nước ngọt, thùng, giỏ trái cây
+  const stand = (sx, sy, w) => { R(x, '#6a4a30', sx, sy + 4, w, 2); R(x, '#8a6a48', sx, sy + 4, w, 1); R(x, '#4a2c1c', sx + 1, sy + 6, 2, 6); R(x, '#4a2c1c', sx + w - 3, sy + 6, 2, 6); };
+  stand(1, 33, 32);
+  [['#e84a3a', 3], ['#3a8ad8', 6], ['#5ac84a', 9], ['#f0c030', 12], ['#e84a3a', 15], ['#3a8ad8', 18]].forEach(([cl, bx2]) => { R(x, cl, bx2, 29, 2, 5); R(x, shade(cl, 40), bx2, 29, 1, 4); R(x, '#d8d8d8', bx2, 28, 2, 1); });
+  R(x, '#f0f0f0', 23, 28, 8, 9); R(x, '#d82a2a', 23, 28, 8, 2); R(x, '#a8c8e0', 24, 31, 6, 4); R(x, '#2a1a14', 27, 29, 2, 1);
+  stand(86, 33, 32);
+  [[89, '#2f8a3a'], [96, '#f08a28'], [103, '#d83a3a'], [110, '#f2d040']].forEach(([fx2, cl]) => { disc(x, shade(cl, -30), fx2 + 1, 33, 3.8, 3); disc(x, cl, fx2, 32, 3.4, 2.8); disc(x, shade(cl, 40), fx2 - 1, 31, 1.2, 0.8); });
+  R(x, '#e8e0c8', 89, 26, 14, 7); R(x, '#2a1a14', 89, 26, 14, 1); R(x, '#d8281c', 91, 28, 10, 1); R(x, '#2a7a2a', 91, 30, 7, 1);
+
   // mặt đường lát đá
   R(x, '#a0988a', 0, gy, W, H);
   for (let y = gy, row = 0; y < H; y += 6, row++) {
@@ -322,69 +369,91 @@ Scenes.market = function (canvas, opt = {}) {
     }
   }
   R(x, '#6a6460', 0, gy, W, 2); R(x, '#807a70', 0, gy + 2, W, 1);
-  // ô dù đỏ trắng
-  const ux = 60, uy = 4;
-  R(x, '#6a5a4a', ux, uy + 10, 1, 34);
-  for (let i = 0; i < 9; i++) {
-    const half = 36 - i * 4; // bán kính theo hàng
-    const rowY = uy + 5 + i * 2 + (i > 6 ? 0 : 0);
-    // vẽ bằng parabol: hàng từ trên xuống
-  }
-  for (let yy = 0; yy < 16; yy++) {
-    const half = Math.round(8 + (yy / 15) * 30);
-    for (let xx = -half; xx <= half; xx++) {
-      const stripe = Math.floor((xx + 40) / 6) % 2;
-      P(x, stripe ? '#f4ecdc' : '#c8402c', ux + xx, uy + 2 + yy);
-    }
-    P(x, '#6a1a10', ux - half, uy + 2 + yy); P(x, '#6a1a10', ux + half, uy + 2 + yy);
-  }
-  for (let xx = -38; xx <= 38; xx += 4) { P(x, '#6a1a10', ux + xx, uy + 18); P(x, '#6a1a10', ux + xx + 1, uy + 18); }
-  R(x, '#6a1a10', ux - 1, uy, 3, 3);
+  // vỉa hè sơn đỏ trắng
+  for (let xx = 0; xx < W; xx += 4) R(x, (xx / 4) % 2 ? '#e8e0d0' : '#c85a4a', xx, gy, 4, 1);
+
   // cái thúng (rổ) lớn đặt trước
   const bxl = 38, byl = 50;
   disc(x, '#a8783c', bxl + 22, byl + 3, 22, 5);
   R(x, '#b8884a', bxl, byl + 1, 44, 7); disc(x, '#b8884a', bxl + 22, byl + 8, 21, 4);
   for (let i = 0; i < 44; i += 3) R(x, '#8a5a28', bxl + i, byl + 2, 1, 8);
   R(x, '#6a4018', bxl, byl, 44, 1);
-  const vendorLook = { skin: '#d9a070', hair: '#cfcfcf', style: 'bald', shirt: '#8a5a38', pants: '#2c2a30', mustache: true, elder: true };
-  const vend = Sprite.char(vendorLook);
-  const vendB = Sprite.char(vendorLook, { blink: true });
+
+  const vendorLook = DATA.CHARS.ongbay.look;
+  // lớp phủ độ phân giải cao: ông Bảy nét hơn, phần thúng phía trước đè lên người bán
+  let host = null, vimg = null, front = null, fctx = null, blinkOn = false;
+  if (opt.overlay && canvas.parentNode) {
+    host = el('div', 'mkt-lay'); canvas.parentNode.appendChild(host);
+    vimg = new Image(); vimg.className = 'pix hi mkt-vendor'; vimg.src = charURL(vendorLook); vimg.draggable = false; host.appendChild(vimg);
+    front = el('canvas', 'pix mkt-front'); host.appendChild(front); fctx = sceneCtx(front, W, H);
+  }
+  const vend = Sprite.char(vendorLook), vendB = Sprite.char(vendorLook, { blink: true });
   let t = 0, tint = 0;
   const pigeons = [{ x: 20, y: gy + 22, d: 1 }, { x: 98, y: gy + 26, d: -1 }];
+  const steam = []; let steamT = 0;
+  const walkers = [{ x: 10, v: 6, c: '#c84a3a', h: '#2a1a14' }, { x: 80, v: -8, c: '#3a7ac8', h: '#6a6a6a' }, { x: 50, v: 4.5, c: '#4aa05a', h: '#1a1a1a' }];
+  const SN = ['#d84a3a', '#f0c030', '#3a8ad8', '#5ac84a'];
   const ctl = {
     W, H, gy,
     mounds: [], // [{color,count}]
     setTime(f) { tint = clamp(1 - f * 1.6, 0, 0.35); },
     update(dt) {
       t += dt;
-      ctx.drawImage(bg.c, 0, 0);
+      ctx.drawImage(bg.c, 0, 0, W, H);
       ctx.save(); ctx.translate(0, OY);
-      // người bán
-      const bob = Math.round(Math.sin(t * 2) * 0.6);
-      (ctl.staff || []).forEach((st) => { ctx.drawImage(st.cv, st.x, 31 + Math.round(Math.sin(t * 3 + st.p) * 0.7)); });
-      ctx.drawImage(((t % 3.6) > 3.45) ? vendB : vend, 51, 31 + bob);
-      // xôi trong thúng
-      const m = ctl.mounds.filter((q) => q.count > 0);
-      const cap = Math.max(1, m.length);
-      m.forEach((q, i) => {
-        const cxm = bxl + 8 + (i + 0.5) * (30 / cap) + 3;
-        const hh = 2 + Math.min(4, Math.ceil(q.count / 8));
-        disc(ctx, q.color, cxm, byl + 1, 6 - cap * 0.4, hh * 0.9);
-        disc(ctx, shade(q.color, 30), cxm - 1, byl - 0.5, 2, 1.2);
+      // dây đèn lồng nhấp nháy giăng ngang phố
+      for (let xx = 0; xx < W; xx++) { const yy = 7 + Math.sin((xx / W) * Math.PI) * 3.4; P(ctx, '#2a2e3a', xx, yy); }
+      for (let i = 0; i < 15; i++) { const xx = 4 + i * 8, yy = 7 + Math.sin((xx / W) * Math.PI) * 3.4 + 1, on = Math.sin(t * 3 + i * 1.7) > -0.2, cl = ['#ff5a4a', '#ffd23a', '#5ad0ff', '#7aff7a'][i % 4]; R(ctx, on ? cl : shade(cl, -80), xx, yy, 2, 2); if (on) { disc(ctx, 'rgba(255,230,150,.22)', xx + 0.5, yy + 0.5, 3, 3); P(ctx, '#fff', xx, yy); } }
+      // đèn neon quán cà phê nhấp nháy
+      const fl = 0.16 + 0.07 * Math.sin(t * 6) + (Math.sin(t * 31) > 0.96 ? -0.1 : 0); ctx.fillStyle = 'rgba(255,200,120,' + clamp(fl, 0, 1).toFixed(3) + ')'; ctx.fillRect(40, 15, 40, 12);
+      // gói snack tạp hóa đung đưa
+      for (let i = 0; i < 6; i++) { const sw = Math.sin(t * 2.2 + i * 0.9) * 1.1; R(ctx, '#3a2418', 6 + i * 5 + sw * 0.4, 29, 1, 2); R(ctx, SN[i % 4], 5 + i * 5 + sw, 31, 3, 5); P(ctx, 'rgba(255,255,255,.7)', 5 + i * 5 + sw, 31); }
+      // chuối treo ở tiệm rau quả
+      for (let i = 0; i < 4; i++) { const sw = Math.sin(t * 1.8 + i) * 0.9; R(ctx, '#f2d040', 109 + i * 2 + sw, 30, 1, 6 + (i % 2)); R(ctx, '#c8a020', 110 + i * 2 + sw, 31, 1, 5); } R(ctx, '#5a3a20', 108, 29, 9, 1);
+      // hơi nóng từ ly cà phê
+      steamT += dt * 5; while (steamT > 1) { steamT--; steam.push({ x: 56 + (Math.random() < 0.5 ? 0 : 5) + Math.random() * 2, y: 34, l: 0, vx: (Math.random() - 0.5) * 3 }); }
+      for (let i = steam.length - 1; i >= 0; i--) { const s = steam[i]; s.l += dt; if (s.l > 1.6) { steam.splice(i, 1); continue; } s.y -= dt * 5; s.x += s.vx * dt + Math.sin(s.l * 6) * 0.1; disc(ctx, 'rgba(255,255,255,' + (0.55 * (1 - s.l / 1.6)).toFixed(2) + ')', s.x, s.y, 0.9 + s.l, 0.9 + s.l); }
+      // người đi bộ phía xa
+      walkers.forEach((w, i) => {
+        w.x += w.v * dt; if (w.x > W + 6) w.x = -6; if (w.x < -6) w.x = W + 6;
+        const st = Math.floor(t * 6 + i) % 2, wy = gy - 3;
+        R(ctx, '#1a1a28', w.x, wy + 6 + st, 1, 3 - st); R(ctx, '#1a1a28', w.x + 2, wy + 7 - st, 1, 2 + st);
+        R(ctx, w.c, w.x - 0.5, wy + 2, 4, 5); R(ctx, '#e8b890', w.x, wy - 1, 3, 3); R(ctx, w.h, w.x, wy - 1, 3, 1);
       });
-      // phần thúng trước mặt (che gốc xôi)
-      R(ctx, '#b8884a', bxl, byl + 3, 44, 5); disc(ctx, '#b8884a', bxl + 22, byl + 8, 21, 3);
-      for (let i = 0; i < 44; i += 3) R(ctx, '#8a5a28', bxl + i, byl + 4, 1, 6);
-      R(ctx, '#6a4018', bxl, byl + 3, 44, 1);
-      // chim bồ câu
-      pigeons.forEach((p, i) => {
-        p.x += p.d * dt * 3; if (p.x < 6 || p.x > W - 6) p.d *= -1;
-        const hop = Math.sin(t * 6 + i) > 0.8 ? -1 : 0;
-        R(ctx, '#8a8a98', p.x, p.y + hop, 4, 2); P(ctx, '#6a6a78', p.x + (p.d > 0 ? 4 : -1), p.y + hop - 1); P(ctx, '#e8a030', p.x + (p.d > 0 ? 5 : -2), p.y + hop);
-      });
+      (ctl.staff || []).forEach((st) => { drawChar(ctx, st.cv, st.x, 31 + Math.sin(t * 3 + st.p) * 0.7); });
+      const bob = Math.round(Math.sin(t * 2) * 0.6), blink = (t % 3.6) > 3.45;
+      if (front) {
+        if (blink !== blinkOn) { blinkOn = blink; vimg.src = charURL(vendorLook, blink ? { blink: true } : undefined); }
+        ctx.restore();
+        fctx.clearRect(0, 0, W, H); fctx.save(); fctx.translate(0, OY);
+        drawFront(fctx);
+        fctx.restore();
+        if (tint > 0.01) { fctx.fillStyle = 'rgba(255,150,70,' + tint.toFixed(3) + ')'; fctx.fillRect(0, 0, W, H); }
+        return;
+      }
+      ctx.drawImage(blink ? vendB : vend, 51, 31 + bob);
+      drawFront(ctx);
       ctx.restore();
       if (tint > 0.01) { ctx.fillStyle = 'rgba(255,150,70,' + tint.toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
     },
   };
+  function drawFront(c2) {
+    // xôi trong thúng
+    const m = ctl.mounds.filter((q) => q.count > 0), cap = Math.max(1, m.length);
+    m.forEach((q, i) => {
+      const cxm = bxl + 8 + (i + 0.5) * (30 / cap) + 3, f = 0.55 + 0.45 * Math.min(1, q.count / 8), w = 17 - cap * 1.2, bw = Sprite.bowl(q.color, q.id);
+      c2.drawImage(bw, 7 * SS, 2 * SS, 24 * SS, 15 * SS, cxm - w / 2, byl + 3.5 - (w * 0.62) * f, w, w * 0.62 * f);
+    });
+    // phần thúng phía trước (che gốc xôi và chân người bán)
+    R(c2, '#b8884a', bxl, byl + 3, 44, 5); disc(c2, '#b8884a', bxl + 22, byl + 8, 21, 3);
+    for (let i = 0; i < 44; i += 3) R(c2, '#8a5a28', bxl + i, byl + 4, 1, 6);
+    R(c2, '#6a4018', bxl, byl + 3, 44, 1);
+    // chim bồ câu
+    pigeons.forEach((p, i) => {
+      p.x += p.d * 0.016 * 3; if (p.x < 6 || p.x > W - 6) p.d *= -1;
+      const hop = Math.sin(t * 6 + i) > 0.8 ? -1 : 0;
+      R(c2, '#8a8a98', p.x, p.y + hop, 4, 2); P(c2, '#6a6a78', p.x + (p.d > 0 ? 4 : -1), p.y + hop - 1); P(c2, '#e8a030', p.x + (p.d > 0 ? 5 : -2), p.y + hop);
+    });
+  }
   return ctl;
 };
